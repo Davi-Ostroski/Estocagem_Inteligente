@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Sistema de Gestão de Estoque{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4"><i class="fas fa-home"></i> Dashboard</h1>
+    
+    <!-- Cards de Estatísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Total de Produtos</h6>
+                            <h2 class="mb-0">{{ total_produtos }}</h2>
+                        </div>
+                        <i class="fas fa-box fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Estoque Baixo</h6>
+                            <h2 class="mb-0">{{ produtos_estoque_baixo|length }}</h2>
+                        </div>
+                        <i class="fas fa-exclamation-triangle fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Valor em Estoque</h6>
+                            <h2 class="mb-0">R$ {{ "%.2f"|format(valor_total_estoque) }}</h2>
+                        </div>
+                        <i class="fas fa-dollar-sign fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Movimentações Hoje</h6>
+                            <h2 class="mb-0">{{ ultimas_movimentacoes|length }}</h2>
+                        </div>
+                        <i class="fas fa-exchange-alt fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Alertas de Estoque Baixo -->
+    {% if produtos_estoque_baixo %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Alertas de Estoque Baixo</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th>Quantidade</th>
+                                    <th>Estoque Mínimo</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for produto in produtos_estoque_baixo[:5] %}
+                                <tr>
+                                    <td>{{ produto.codigo }}</td>
+                                    <td>{{ produto.descricao }}</td>
+                                    <td>{{ produto.categoria or '-' }}</td>
+                                    <td><span class="badge bg-danger">{{ produto.quantidade_estoque }}</span></td>
+                                    <td>{{ produto.estoque_minimo }}</td>
+                                    <td>
+                                        <a href="{{ url_for('produtos.detalhes', id=produto.id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if produtos_estoque_baixo|length > 5 %}
+                    <div class="text-center">
+                        <a href="{{ url_for('dashboard.alertas') }}" class="btn btn-danger">
+                            Ver todos os alertas ({{ produtos_estoque_baixo|length }})
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Últimas Movimentações -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Últimas Movimentações</h5>
+                </div>
+                <div class="card-body">
+                    {% if ultimas_movimentacoes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Produto</th>
+                                    <th>Tipo</th>
+                                    <th>Quantidade</th>
+                                    <th>Observação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for mov in ultimas_movimentacoes %}
+                                <tr>
+                                    <td>{{ mov.data_movimentacao.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('produtos.detalhes', id=mov.produto.id) }}">
+                                            {{ mov.produto.codigo }} - {{ mov.produto.descricao }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {% if mov.tipo_movimentacao == 'Entrada' %}
+                                            <span class="badge bg-success">Entrada</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Saída</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ mov.quantidade }}</td>
+                                    <td>{{ mov.observacao or '-' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center">
+                        <a href="{{ url_for('movimentacoes.historico') }}" class="btn btn-primary">
+                            Ver histórico completo
+                        </a>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center mb-0">Nenhuma movimentação registrada ainda.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

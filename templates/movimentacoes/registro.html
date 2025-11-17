@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar Movimentação - Sistema de Gestão de Estoque{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="mb-4">
+                <i class="fas fa-exchange-alt"></i> Registrar Movimentação
+            </h1>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.id_produto.label(class="form-label") }}
+                            {{ form.id_produto(class="form-select" + (" is-invalid" if form.id_produto.errors else "")) }}
+                            {% if form.id_produto.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.id_produto.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Selecione o produto para movimentação</div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.tipo_movimentacao.label(class="form-label") }}
+                                {{ form.tipo_movimentacao(class="form-select" + (" is-invalid" if form.tipo_movimentacao.errors else "")) }}
+                                {% if form.tipo_movimentacao.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.tipo_movimentacao.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.quantidade.label(class="form-label") }}
+                                {{ form.quantidade(class="form-control" + (" is-invalid" if form.quantidade.errors else ""), min="1") }}
+                                {% if form.quantidade.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.quantidade.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.observacao.label(class="form-label") }}
+                            {{ form.observacao(class="form-control" + (" is-invalid" if form.observacao.errors else ""), rows="3") }}
+                            {% if form.observacao.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.observacao.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Opcional: adicione informações adicionais sobre a movimentação</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('movimentacoes.historico') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Registrar Movimentação
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Informações sobre Estoque Atual -->
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Estoque Atual dos Produtos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Descrição</th>
+                                    <th>Quantidade</th>
+                                    <th>Estoque Mínimo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for produto in produtos %}
+                                <tr {% if produto.esta_abaixo_minimo() %}class="table-danger"{% endif %}>
+                                    <td>{{ produto.codigo }}</td>
+                                    <td>{{ produto.descricao }}</td>
+                                    <td><strong>{{ produto.quantidade_estoque }}</strong></td>
+                                    <td>{{ produto.estoque_minimo }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
